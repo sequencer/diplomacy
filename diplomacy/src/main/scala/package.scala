@@ -2,7 +2,6 @@
 
 import chisel3._
 import chisel3.internal.sourceinfo.{SourceInfo, SourceLine}
-import diplomacy.config.Parameters
 import diplomacy.macros.ValNameImpl
 
 import scala.language.implicitConversions
@@ -205,15 +204,24 @@ package object diplomacy {
     }
   }
 
-  def EnableMonitors[T](body: Parameters => T)(implicit p: Parameters) = body(p.alterPartial {
-    case MonitorsEnabled => true
-  })
-  def DisableMonitors[T](body: Parameters => T)(implicit p: Parameters) = body(p.alterPartial {
-    case MonitorsEnabled => false
-  })
-  def FlipRendering[T](body: Parameters => T)(implicit p: Parameters) = body(p.alterPartial {
-    case RenderFlipped => !p(RenderFlipped)
-  })
+  def EnableMonitors[T](body: () => T) = {
+    val originalStatus = LazyModule.monitorsEnabled
+    LazyModule.monitorsEnabled = true
+    body()
+    LazyModule.monitorsEnabled = originalStatus
+  }
+
+  def DisableMonitors[T](body: () => T) = {
+    val originalStatus = LazyModule.monitorsEnabled
+    LazyModule.monitorsEnabled = false
+    body()
+    LazyModule.monitorsEnabled = originalStatus
+  }
+  def FlipRendering[T](body: () => T) = {
+    LazyModule.monitorsEnabled = !LazyModule.monitorsEnabled
+    body()
+    LazyModule.monitorsEnabled = !LazyModule.monitorsEnabled
+  }
 
   implicit def moduleValue[T](value: ModuleValue[T]): T = value.getWrappedValue
 

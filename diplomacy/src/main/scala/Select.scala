@@ -3,7 +3,6 @@
 package diplomacy
 
 import chisel3.Data
-import config.Parameters
 
 /** Combinators for finding specific sets of [[LazyModule]]s/[[Node]]s.
   *
@@ -14,14 +13,12 @@ object aop {
 
   /** Contains information about an inward edge of a node */
   case class InwardEdge[Bundle <: Data, EdgeInParams](
-    params: Parameters,
     bundle: Bundle,
     edge:   EdgeInParams,
     node:   OutwardNode[_, _, Bundle])
 
   /** Contains information about an outward edge of a node */
   case class OutwardEdge[Bundle <: Data, EdgeOutParams](
-    params: Parameters,
     bundle: Bundle,
     edge:   EdgeOutParams,
     node:   InwardNode[_, _, Bundle])
@@ -35,8 +32,8 @@ object aop {
       node: MixedNode[_, _, EI, BI, _, _, _, _ <: Data]
     ): Iterable[InwardEdge[BI, EI]] = {
       node.iPorts.zip(node.in).map {
-        case ((_, node, params, _), (bundle, edge)) =>
-          InwardEdge(params, bundle, edge, node)
+        case ((_, node, _), (bundle, edge)) =>
+          InwardEdge(bundle, edge, node)
       }
     }
 
@@ -55,8 +52,8 @@ object aop {
       node: MixedNode[_, _, _, _ <: Data, _, _, EO, BO]
     ): Iterable[OutwardEdge[BO, EO]] = {
       node.oPorts.zip(node.out).map {
-        case ((_, node, params, _), (bundle, edge)) =>
-          OutwardEdge(params, bundle, edge, node)
+        case ((_, node, _), (bundle, edge)) =>
+          OutwardEdge(bundle, edge, node)
       }
     }
 
