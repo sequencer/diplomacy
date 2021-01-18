@@ -177,7 +177,7 @@ abstract class SimpleNodeImp[D, U, E, B <: Data] extends NodeImp[D, U, E, E, B] 
   *
   * @param valName [[ValName]] of this node, used by naming inference.
   */
-abstract class BaseNode(implicit val valName: ValName) {
+abstract class BaseNode(implicit val valName: sourcecode.Name) {
 
   /** All subclasses of [[BaseNode]]s are expected to be instantiated only within [[LazyModule]]s.
     *
@@ -214,7 +214,7 @@ abstract class BaseNode(implicit val valName: ValName) {
   protected[diplomacy] def instantiate(): Seq[Dangle]
 
   /** @return name of this node. */
-  def name: String = scope.map(_.name).getOrElse("TOP") + "." + valName.name
+  def name: String = scope.map(_.name).getOrElse("TOP") + "." + valName.value
 
   /** Determines whether or not this node will be excluded from the graph visualization.
     *
@@ -249,7 +249,7 @@ abstract class BaseNode(implicit val valName: ValName) {
     */
   def wirePrefix: String = {
     val camelCase = "([a-z])([A-Z])".r
-    val decamel = camelCase.replaceAllIn(valName.name, _ match { case camelCase(l, h) => l + "_" + h })
+    val decamel = camelCase.replaceAllIn(valName.value, _ match { case camelCase(l, h) => l + "_" + h })
     val name = decamel.toLowerCase.stripSuffix("_opt").stripSuffix("node").stripSuffix("_")
     if (name.isEmpty) "" else name + "_"
   }
@@ -373,7 +373,9 @@ trait NodeHandle[DI, UI, EI, BI <: Data, DO, UO, EO, BO <: Data]
     */
   override def :=[DX, UX, EX, BX <: Data, EY](
     h: NodeHandle[DX, UX, EX, BX, DI, UI, EY, BI]
-  )(implicit sourceInfo: SourceInfo): NodeHandle[DX, UX, EX, BX, DO, UO, EO, BO] = { bind(h, BIND_ONCE); NodeHandle(h, this) }
+  )(
+    implicit sourceInfo: SourceInfo
+  ): NodeHandle[DX, UX, EX, BX, DO, UO, EO, BO] = { bind(h, BIND_ONCE); NodeHandle(h, this) }
 
   /** Connects two full nodes handles => full node handle.
     *
@@ -385,7 +387,9 @@ trait NodeHandle[DI, UI, EI, BI <: Data, DO, UO, EO, BO <: Data]
     */
   override def :*=[DX, UX, EX, BX <: Data, EY](
     h: NodeHandle[DX, UX, EX, BX, DI, UI, EY, BI]
-  )(implicit sourceInfo: SourceInfo): NodeHandle[DX, UX, EX, BX, DO, UO, EO, BO] = { bind(h, BIND_STAR); NodeHandle(h, this) }
+  )(
+    implicit sourceInfo: SourceInfo
+  ): NodeHandle[DX, UX, EX, BX, DO, UO, EO, BO] = { bind(h, BIND_STAR); NodeHandle(h, this) }
 
   /** Connects two full nodes handles => full node handle.
     *
@@ -397,7 +401,9 @@ trait NodeHandle[DI, UI, EI, BI <: Data, DO, UO, EO, BO <: Data]
     */
   override def :=*[DX, UX, EX, BX <: Data, EY](
     h: NodeHandle[DX, UX, EX, BX, DI, UI, EY, BI]
-  )(implicit sourceInfo: SourceInfo): NodeHandle[DX, UX, EX, BX, DO, UO, EO, BO] = { bind(h, BIND_QUERY); NodeHandle(h, this) }
+  )(
+    implicit sourceInfo: SourceInfo
+  ): NodeHandle[DX, UX, EX, BX, DO, UO, EO, BO] = { bind(h, BIND_QUERY); NodeHandle(h, this) }
 
   /** Connects two full nodes handles => full node handle.
     *
@@ -409,7 +415,9 @@ trait NodeHandle[DI, UI, EI, BI <: Data, DO, UO, EO, BO <: Data]
     */
   override def :*=*[DX, UX, EX, BX <: Data, EY](
     h: NodeHandle[DX, UX, EX, BX, DI, UI, EY, BI]
-  )(implicit sourceInfo: SourceInfo): NodeHandle[DX, UX, EX, BX, DO, UO, EO, BO] = { bind(h, BIND_FLEX); NodeHandle(h, this) }
+  )(
+    implicit sourceInfo: SourceInfo
+  ): NodeHandle[DX, UX, EX, BX, DO, UO, EO, BO] = { bind(h, BIND_FLEX); NodeHandle(h, this) }
 
   /** Connects a full node with an output node => an output handle.
     *
@@ -421,7 +429,9 @@ trait NodeHandle[DI, UI, EI, BI <: Data, DO, UO, EO, BO <: Data]
     */
   override def :=[EY](
     h: OutwardNodeHandle[DI, UI, EY, BI]
-  )(implicit sourceInfo: SourceInfo): OutwardNodeHandle[DO, UO, EO, BO] = { bind(h, BIND_ONCE); this }
+  )(
+    implicit sourceInfo: SourceInfo
+  ): OutwardNodeHandle[DO, UO, EO, BO] = { bind(h, BIND_ONCE); this }
 
   /** Connects a full node with an output node => an output handle.
     *
@@ -433,7 +443,9 @@ trait NodeHandle[DI, UI, EI, BI <: Data, DO, UO, EO, BO <: Data]
     */
   override def :*=[EY](
     h: OutwardNodeHandle[DI, UI, EY, BI]
-  )(implicit sourceInfo: SourceInfo): OutwardNodeHandle[DO, UO, EO, BO] = { bind(h, BIND_STAR); this }
+  )(
+    implicit sourceInfo: SourceInfo
+  ): OutwardNodeHandle[DO, UO, EO, BO] = { bind(h, BIND_STAR); this }
 
   /** Connects a full node with an output => an output.
     *
@@ -445,7 +457,9 @@ trait NodeHandle[DI, UI, EI, BI <: Data, DO, UO, EO, BO <: Data]
     */
   override def :=*[EY](
     h: OutwardNodeHandle[DI, UI, EY, BI]
-  )(implicit sourceInfo: SourceInfo): OutwardNodeHandle[DO, UO, EO, BO] = { bind(h, BIND_QUERY); this }
+  )(
+    implicit sourceInfo: SourceInfo
+  ): OutwardNodeHandle[DO, UO, EO, BO] = { bind(h, BIND_QUERY); this }
 
   /** Connects a full node with an output => an output.
     *
@@ -457,7 +471,9 @@ trait NodeHandle[DI, UI, EI, BI <: Data, DO, UO, EO, BO <: Data]
     */
   override def :*=*[EY](
     h: OutwardNodeHandle[DI, UI, EY, BI]
-  )(implicit sourceInfo: SourceInfo): OutwardNodeHandle[DO, UO, EO, BO] = { bind(h, BIND_FLEX); this }
+  )(
+    implicit sourceInfo: SourceInfo
+  ): OutwardNodeHandle[DO, UO, EO, BO] = { bind(h, BIND_FLEX); this }
 }
 
 object NodeHandle {
@@ -506,7 +522,9 @@ trait InwardNodeHandle[DI, UI, EI, BI <: Data] extends NoHandle {
   protected def bind[EY](
     h:       OutwardNodeHandle[DI, UI, EY, BI],
     binding: NodeBinding
-  )(implicit sourceInfo: SourceInfo): Unit = inward.bind(h.outward, binding)
+  )(
+    implicit sourceInfo: SourceInfo
+  ): Unit = inward.bind(h.outward, binding)
 
   /** Connect an input node with a full node => inward node handle.
     *
@@ -518,7 +536,9 @@ trait InwardNodeHandle[DI, UI, EI, BI <: Data] extends NoHandle {
     */
   def :=[DX, UX, EX, BX <: Data, EY](
     h: NodeHandle[DX, UX, EX, BX, DI, UI, EY, BI]
-  )(implicit sourceInfo: SourceInfo): InwardNodeHandle[DX, UX, EX, BX] = { bind(h, BIND_ONCE); h }
+  )(
+    implicit sourceInfo: SourceInfo
+  ): InwardNodeHandle[DX, UX, EX, BX] = { bind(h, BIND_ONCE); h }
 
   /** Connect an input node with a full node => an input node.
     *
@@ -530,7 +550,9 @@ trait InwardNodeHandle[DI, UI, EI, BI <: Data] extends NoHandle {
     */
   def :*=[DX, UX, EX, BX <: Data, EY](
     h: NodeHandle[DX, UX, EX, BX, DI, UI, EY, BI]
-  )(implicit sourceInfo: SourceInfo): InwardNodeHandle[DX, UX, EX, BX] = { bind(h, BIND_STAR); h }
+  )(
+    implicit sourceInfo: SourceInfo
+  ): InwardNodeHandle[DX, UX, EX, BX] = { bind(h, BIND_STAR); h }
 
   /** Connect an input node with a full node => an inward node handle.
     *
@@ -542,7 +564,9 @@ trait InwardNodeHandle[DI, UI, EI, BI <: Data] extends NoHandle {
     */
   def :=*[DX, UX, EX, BX <: Data, EY](
     h: NodeHandle[DX, UX, EX, BX, DI, UI, EY, BI]
-  )(implicit sourceInfo: SourceInfo): InwardNodeHandle[DX, UX, EX, BX] = { bind(h, BIND_QUERY); h }
+  )(
+    implicit sourceInfo: SourceInfo
+  ): InwardNodeHandle[DX, UX, EX, BX] = { bind(h, BIND_QUERY); h }
 
   /** Connect an input node with a full node => an input node.
     *
@@ -554,7 +578,9 @@ trait InwardNodeHandle[DI, UI, EI, BI <: Data] extends NoHandle {
     */
   def :*=*[DX, UX, EX, BX <: Data, EY](
     h: NodeHandle[DX, UX, EX, BX, DI, UI, EY, BI]
-  )(implicit sourceInfo: SourceInfo): InwardNodeHandle[DX, UX, EX, BX] = { bind(h, BIND_FLEX); h }
+  )(
+    implicit sourceInfo: SourceInfo
+  ): InwardNodeHandle[DX, UX, EX, BX] = { bind(h, BIND_FLEX); h }
 
   /** Connect an input node with output node => no node.
     *
@@ -666,7 +692,9 @@ trait InwardNode[DI, UI, BI <: Data] extends BaseNode {
     index:   Int,
     node:    OutwardNode[DI, UI, BI],
     binding: NodeBinding
-  )(implicit sourceInfo: SourceInfo): Unit = {
+  )(
+    implicit sourceInfo: SourceInfo
+  ): Unit = {
     val info = sourceLine(sourceInfo, " at ", "")
     require(
       !iRealized,
@@ -690,8 +718,7 @@ trait InwardNode[DI, UI, BI <: Data] extends BaseNode {
     * - [[NodeBinding]] describing the type of binding.
     * - [[SourceInfo]] for source-level error reporting.
     */
-  protected[diplomacy] lazy val iBindings
-    : immutable.Seq[(Int, OutwardNode[DI, UI, BI], NodeBinding, SourceInfo)] = {
+  protected[diplomacy] lazy val iBindings: immutable.Seq[(Int, OutwardNode[DI, UI, BI], NodeBinding, SourceInfo)] = {
     iRealized = true; accPI.result()
   }
 
@@ -738,7 +765,9 @@ trait InwardNode[DI, UI, BI <: Data] extends BaseNode {
   protected[diplomacy] def bind(
     h:       OutwardNode[DI, UI, BI],
     binding: NodeBinding
-  )(implicit sourceInfo: SourceInfo): Unit
+  )(
+    implicit sourceInfo: SourceInfo
+  ): Unit
 }
 
 /** A Handle for OutwardNodes, which may appear on the right side of a bind operator. */
@@ -779,7 +808,9 @@ trait OutwardNode[DO, UO, BO <: Data] extends BaseNode {
     index:   Int,
     node:    InwardNode[DO, UO, BO],
     binding: NodeBinding
-  )(implicit sourceInfo: SourceInfo): Unit = {
+  )(
+    implicit sourceInfo: SourceInfo
+  ): Unit = {
     val info = sourceLine(sourceInfo, " at ", "")
     require(
       !oRealized,
@@ -950,7 +981,7 @@ sealed abstract class MixedNode[DI, UI, EI, BI <: Data, DO, UO, EO, BO <: Data](
   val inner: InwardNodeImp[DI, UI, EI, BI],
   val outer: OutwardNodeImp[DO, UO, EO, BO]
 )(
-  implicit valName: ValName)
+  implicit valName: sourcecode.Name)
     extends BaseNode
     with NodeHandle[DI, UI, EI, BI, DO, UO, EO, BO]
     with InwardNode[DI, UI, BI]
@@ -1401,7 +1432,9 @@ sealed abstract class MixedNode[DI, UI, EI, BI <: Data, DO, UO, EO, BO <: Data](
   protected[diplomacy] def bind(
     h:       OutwardNode[DI, UI, BI],
     binding: NodeBinding
-  )(implicit sourceInfo: SourceInfo): Unit = {
+  )(
+    implicit sourceInfo: SourceInfo
+  ): Unit = {
     val x = this // x := y
     val y = h
     val info = sourceLine(sourceInfo, " at ", "")
@@ -1436,7 +1469,7 @@ abstract class MixedCustomNode[DI, UI, EI, BI <: Data, DO, UO, EO, BO <: Data](
   inner: InwardNodeImp[DI, UI, EI, BI],
   outer: OutwardNodeImp[DO, UO, EO, BO]
 )(
-  implicit valName: ValName)
+  implicit valName: sourcecode.Name)
     extends MixedNode(inner, outer) {
   override def description = "custom"
   def resolveStar(iKnown: Int, oKnown: Int, iStars: Int, oStars: Int): (Int, Int)
@@ -1451,7 +1484,7 @@ abstract class MixedCustomNode[DI, UI, EI, BI <: Data, DO, UO, EO, BO <: Data](
 abstract class CustomNode[D, U, EO, EI, B <: Data](
   imp: NodeImp[D, U, EO, EI, B]
 )(
-  implicit valName: ValName)
+  implicit valName: sourcecode.Name)
     extends MixedCustomNode(imp, imp)
 
 /** A JunctionNode creates multiple parallel arbiters.
@@ -1491,7 +1524,7 @@ class MixedJunctionNode[DI, UI, EI, BI <: Data, DO, UO, EO, BO <: Data](
 )(dFn:   Seq[DI] => Seq[DO],
   uFn:   Seq[UO] => Seq[UI]
 )(
-  implicit valName: ValName)
+  implicit valName: sourcecode.Name)
     extends MixedNode(inner, outer) {
   protected[diplomacy] var multiplicity = 0
 
@@ -1543,14 +1576,14 @@ class JunctionNode[D, U, EO, EI, B <: Data](
 )(dFn: Seq[D] => Seq[D],
   uFn: Seq[U] => Seq[U]
 )(
-  implicit valName: ValName)
+  implicit valName: sourcecode.Name)
     extends MixedJunctionNode[D, U, EI, B, D, U, EO, B](imp, imp)(dFn, uFn)
 
 /** [[MixedAdapterNode]] is used to transform between different diplomacy protocols ([[NodeImp]]), without changing the number of edges passing through it.
   *
   * For example, a [[MixedAdapterNode]] is needed for a TL to AXI bridge (interface).
   * {{{
-  *   case class TLToAXI4Node(stripBits: Int = 0)(implicit valName: ValName) extends MixedAdapterNode(TLImp, AXI4Imp)
+  *   case class TLToAXI4Node(stripBits: Int = 0)(implicit valName: sourcecode.Name) extends MixedAdapterNode(TLImp, AXI4Imp)
   * }}}
   *
   * @param dFn convert downward parameter from input to output.
@@ -1562,7 +1595,7 @@ class MixedAdapterNode[DI, UI, EI, BI <: Data, DO, UO, EO, BO <: Data](
 )(dFn:   DI => DO,
   uFn:   UO => UI
 )(
-  implicit valName: ValName)
+  implicit valName: sourcecode.Name)
     extends MixedNode(inner, outer) {
   override def description = "adapter"
   protected[diplomacy] override def flexibleArityDirection = true
@@ -1640,14 +1673,14 @@ class AdapterNode[D, U, EO, EI, B <: Data](
 )(dFn: D => D,
   uFn: U => U
 )(
-  implicit valName: ValName)
+  implicit valName: sourcecode.Name)
     extends MixedAdapterNode[D, U, EI, B, D, U, EO, B](imp, imp)(dFn, uFn)
 
 /** A node which does not modify the parameters nor the protocol for edges that pass through it.
   *
   * During hardware generation, [[IdentityNode]]s automatically connect their inputs to outputs.
   */
-class IdentityNode[D, U, EO, EI, B <: Data](imp: NodeImp[D, U, EO, EI, B])()(implicit valName: ValName)
+class IdentityNode[D, U, EO, EI, B <: Data](imp: NodeImp[D, U, EO, EI, B])()(implicit valName: sourcecode.Name)
     extends AdapterNode(imp)({ s => s }, { s => s }) {
   override def description = "identity"
   override final def circuitIdentity = true
@@ -1662,7 +1695,7 @@ class IdentityNode[D, U, EO, EI, B <: Data](imp: NodeImp[D, U, EO, EI, B])()(imp
   * An ephemeral node provides a mechanism to directly connect two nodes to each other where neither node knows about the other,
   * but both know about an ephemeral node they can use to facilitate the connection.
   */
-class EphemeralNode[D, U, EO, EI, B <: Data](imp: NodeImp[D, U, EO, EI, B])()(implicit valName: ValName)
+class EphemeralNode[D, U, EO, EI, B <: Data](imp: NodeImp[D, U, EO, EI, B])()(implicit valName: sourcecode.Name)
     extends AdapterNode(imp)({ s => s }, { s => s }) {
   override def description = "ephemeral"
   override final def circuitIdentity = true
@@ -1697,7 +1730,7 @@ class MixedNexusNode[DI, UI, EI, BI <: Data, DO, UO, EO, BO <: Data](
   inputRequiresOutput: Boolean = true,
   outputRequiresInput: Boolean = true
 )(
-  implicit valName: ValName)
+  implicit valName: sourcecode.Name)
     extends MixedNode(inner, outer) {
   override def description = "nexus"
   protected[diplomacy] def resolveStar(iKnown: Int, oKnown: Int, iStars: Int, oStars: Int): (Int, Int) = {
@@ -1744,7 +1777,7 @@ class NexusNode[D, U, EO, EI, B <: Data](
   inputRequiresOutput: Boolean = true,
   outputRequiresInput: Boolean = true
 )(
-  implicit valName: ValName)
+  implicit valName: sourcecode.Name)
     extends MixedNexusNode[D, U, EI, B, D, U, EO, B](imp, imp)(dFn, uFn, inputRequiresOutput, outputRequiresInput)
 
 /** A node which represents a node in the graph which only has outward edges and no inward edges.
@@ -1752,7 +1785,7 @@ class NexusNode[D, U, EO, EI, B <: Data](
   * A [[SourceNode]] cannot appear left of a `:=`, `:*=`, `:=*, or `:*=*`
   * There are no Mixed [[SourceNode]]s, There are no "Mixed" [[SourceNode]]s because each one only has an outward side.
   */
-class SourceNode[D, U, EO, EI, B <: Data](imp: NodeImp[D, U, EO, EI, B])(po: Seq[D])(implicit valName: ValName)
+class SourceNode[D, U, EO, EI, B <: Data](imp: NodeImp[D, U, EO, EI, B])(po: Seq[D])(implicit valName: sourcecode.Name)
     extends MixedNode(imp, imp) {
   override def description = "source"
   protected[diplomacy] def resolveStar(iKnown: Int, oKnown: Int, iStars: Int, oStars: Int): (Int, Int) = {
@@ -1809,10 +1842,10 @@ class SourceNode[D, U, EO, EI, B <: Data](imp: NodeImp[D, U, EO, EI, B])(po: Seq
   protected[diplomacy] def mapParamsD(n: Int, p: Seq[D]): Seq[D] = po
   protected[diplomacy] def mapParamsU(n: Int, p: Seq[U]): Seq[U] = Seq()
 
-  def makeIOs()(implicit valName: ValName): HeterogeneousBag[B] = {
+  def makeIOs()(implicit valName: sourcecode.Name): HeterogeneousBag[B] = {
     val bundles = this.out.map(_._1)
     val ios = IO(Flipped(new HeterogeneousBag(bundles.map(_.cloneType))))
-    ios.suggestName(valName.name)
+    ios.suggestName(valName.value)
     bundles.zip(ios).foreach { case (bundle, io) => bundle <> io }
     ios
   }
@@ -1824,7 +1857,7 @@ class SourceNode[D, U, EO, EI, B <: Data](imp: NodeImp[D, U, EO, EI, B])(po: Seq
   *
   * There are no "Mixed" [[SinkNode]]s because each one only has an inward side.
   */
-class SinkNode[D, U, EO, EI, B <: Data](imp: NodeImp[D, U, EO, EI, B])(pi: Seq[U])(implicit valName: ValName)
+class SinkNode[D, U, EO, EI, B <: Data](imp: NodeImp[D, U, EO, EI, B])(pi: Seq[U])(implicit valName: sourcecode.Name)
     extends MixedNode(imp, imp) {
   override def description = "sink"
   protected[diplomacy] def resolveStar(iKnown: Int, oKnown: Int, iStars: Int, oStars: Int): (Int, Int) = {
@@ -1881,10 +1914,10 @@ class SinkNode[D, U, EO, EI, B <: Data](imp: NodeImp[D, U, EO, EI, B])(pi: Seq[U
   protected[diplomacy] def mapParamsD(n: Int, p: Seq[D]): Seq[D] = Seq()
   protected[diplomacy] def mapParamsU(n: Int, p: Seq[U]): Seq[U] = pi
 
-  def makeIOs()(implicit valName: ValName): HeterogeneousBag[B] = {
+  def makeIOs()(implicit valName: sourcecode.Name): HeterogeneousBag[B] = {
     val bundles = this.in.map(_._1)
     val ios = IO(new HeterogeneousBag(bundles.map(_.cloneType)))
-    ios.suggestName(valName.name)
+    ios.suggestName(valName.value)
     bundles.zip(ios).foreach { case (bundle, io) => io <> bundle }
     ios
   }
