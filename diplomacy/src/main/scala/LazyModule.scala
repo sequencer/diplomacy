@@ -8,13 +8,12 @@ import chisel3.{withClockAndReset, MultiIOModule, RawModule, Reset}
 import chisel3.experimental.ChiselAnnotation
 import firrtl.passes.InlineAnnotation
 
-import diplomacy.config.Parameters
 import diplomacy.CompileOptions.NotStrictInferReset
 
 import scala.collection.immutable.{ListMap, SortedMap}
 import scala.util.matching._
 
-/** While the [[freechips.rocketchip.diplomacy]] package allows fairly abstract parameter negotiation while constructing a DAG,
+/** While the [[diplomacy]] package allows fairly abstract parameter negotiation while constructing a DAG,
   * [[LazyModule]] builds on top of the DAG annotated with the negotiated parameters and leverage's Scala's lazy evaluation property to split Chisel module generation into two phases:
   *
   *   - Phase 1 (diplomatic) states parameters, hierarchy, and connections:
@@ -26,7 +25,7 @@ import scala.util.matching._
   *     - [[AutoBundle]] are automatically connected along [[Edges]], punching IO as necessary though module hierarchy
   *     - [[LazyModuleImpLike]] generates [[chisel3.Module]]s.
   */
-abstract class LazyModule()(implicit val p: Parameters) {
+abstract class LazyModule() {
 
   /** Contains sub-[[LazyModule]]s; can be accessed by [[getChildren]]. */
   protected[diplomacy] var children: List[LazyModule] = List[LazyModule]()
@@ -235,6 +234,19 @@ abstract class LazyModule()(implicit val p: Parameters) {
 
 object LazyModule {
 
+  /** configurable parameter used to determine whether [[InwardNodeImp.monitor]] will be called. */
+  var monitorsEnabled: Boolean = false
+
+  /** When rendering the edge in a graphical format, flip the order in which the edges' source and sink are presented.
+    *
+    * For example, when rendering graphML, yEd by default tries to put the source node vertically above the sink node,
+    * but [[renderFlipped]] inverts this relationship. When a particular [[LazyModule]] contains both source nodes and
+    * sink nodes, flipping the rendering of one node's edge will usual produce a more concise visual layout for
+    * the [[LazyModule]].
+    */
+  var renderFlipped: Boolean = false
+
+
   /** Current [[LazyModule]] scope. The scope is a stack of [[LazyModule]]/[[LazyScope]]s.
     *
     * Each call to [[LazyScope.apply]] or [[LazyModule.apply]] will push that item onto the current scope.
@@ -297,9 +309,6 @@ sealed trait LazyModuleImpLike extends RawModule {
   override def desiredName: String = wrapper.desiredName
 
   suggestName(wrapper.suggestedName)
-
-  /** [[Parameters]] for chisel [[Module]]s. */
-  implicit val p: Parameters = wrapper.p
 
   /** instantiate this [[LazyModule]],
     * return [[AutoBundle]] and a unconnected [[Dangle]]s from this module and submodules.
@@ -400,7 +409,7 @@ class LazyRawModuleImp(val wrapper: LazyModule) extends RawModule with LazyModul
   *
   * It can be used as wrapper that only instantiates and connects [[LazyModule]]s.
   */
-class SimpleLazyModule(implicit p: Parameters) extends LazyModule {
+class SimpleLazyModule extends LazyModule {
   lazy val module = new LazyModuleImp(this)
 }
 
@@ -440,20 +449,18 @@ object LazyScope {
     *
     * @param body    code executed within the generated [[SimpleLazyModule]].
     * @param valName instance name of generated [[SimpleLazyModule]].
-    * @param p       [[Parameters]] propagated to [[SimpleLazyModule]].
     */
-  def apply[T](body: => T)(implicit valName: ValName, p: Parameters): T = {
-    apply(valName.toString, "SimpleLazyModule", None)(body)(p)
+  def apply[T](body: => T)(implicit valName: ValName): T = {
+    apply(valName.toString, "SimpleLazyModule", None)(body)
   }
 
   /** Create a [[LazyScope]] with an explicitly defined instance name.
     *
     * @param name      instance name of generated [[SimpleLazyModule]].
     * @param body      code executed within the generated `SimpleLazyModule`
-    * @param p         [[Parameters]] propagated to [[SimpleLazyModule]].
     */
-  def apply[T](name: String)(body: => T)(implicit p: Parameters): T = {
-    apply(name, "SimpleLazyModule", None)(body)(p)
+  def apply[T](name: String)(body: => T): T = {
+    apply(name, "SimpleLazyModule", None)(body)
   }
 
   /** Create a [[LazyScope]] with an explicit instance and class name, and control inlining.
@@ -462,15 +469,12 @@ object LazyScope {
     * @param desiredModuleName class name of generated [[SimpleLazyModule]].
     * @param overrideInlining tell FIRRTL that this [[SimpleLazyModule]]'s module should be inlined.
     * @param body code executed within the generated `SimpleLazyModule`
-    * @param p [[Parameters]] propagated to [[SimpleLazyModule]].
     */
   def apply[T](
     name:              String,
     desiredModuleName: String,
     overrideInlining:  Option[Boolean] = None
   )(body:              => T
-  )(
-    implicit p: Parameters
   ): T = {
     val scope = LazyModule(new SimpleLazyModule with LazyScope {
       override lazy val desiredName = desiredModuleName
@@ -486,10 +490,9 @@ object LazyScope {
     * For example, we might want to control a set of children's clocks but then not keep the parent wrapper.
     *
     * @param body      code executed within the generated `SimpleLazyModule`
-    * @param p         [[Parameters]] propagated to [[SimpleLazyModule]].
     */
-  def inline[T](body: => T)(implicit p: Parameters): T = {
-    apply("noname", "ShouldBeInlined", Some(false))(body)(p)
+  def inline[T](body: => T): T = {
+    apply("noname", "ShouldBeInlined", Some(false))(body)
   }
 }
 

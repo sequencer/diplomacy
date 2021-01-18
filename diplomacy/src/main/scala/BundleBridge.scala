@@ -6,7 +6,6 @@ import chisel3._
 import chisel3.experimental.DataMirror.internal.chiselTypeClone
 import chisel3.experimental.{DataMirror, IO}
 import chisel3.internal.sourceinfo.SourceInfo
-import diplomacy.config.Parameters
 
 case class BundleBridgeParams[T <: Data](genOpt: Option[() => T])
 
@@ -18,7 +17,7 @@ case class BundleBridgeEdgeParams[T <: Data](source: BundleBridgeParams[T], sink
 
 class BundleBridgeImp[T <: Data]()
     extends SimpleNodeImp[BundleBridgeParams[T], BundleBridgeParams[T], BundleBridgeEdgeParams[T], T] {
-  def edge(pd: BundleBridgeParams[T], pu: BundleBridgeParams[T], p: Parameters, sourceInfo: SourceInfo) =
+  def edge(pd: BundleBridgeParams[T], pu: BundleBridgeParams[T], sourceInfo: SourceInfo) =
     BundleBridgeEdgeParams(pd, pu)
   def bundle(e: BundleBridgeEdgeParams[T]): T = {
     val sourceOpt = e.source.genOpt.map(_())
@@ -80,7 +79,7 @@ case class BundleBridgeSource[T <: Data](genOpt: Option[() => T] = None)(implici
   def makeIO(name: String): T = makeIO()(ValName(name))
 
   private var doneSink = false
-  def makeSink()(implicit p: Parameters) = {
+  def makeSink() = {
     require(!doneSink, "Can only call makeSink() once")
     doneSink = true
     val sink = BundleBridgeSink[T]()
@@ -124,8 +123,7 @@ class BundleBridgeNexus[T <: Data](
   default:                      Option[() => T] = None,
   inputRequiresOutput:          Boolean = false,
   override val shouldBeInlined: Boolean = true
-)(
-  implicit p: Parameters)
+)
     extends LazyModule {
   val node = BundleBridgeNexusNode[T](default, inputRequiresOutput)
 
@@ -194,8 +192,6 @@ object BundleBridgeNexus {
     default:             Option[() => T] = None,
     inputRequiresOutput: Boolean = false,
     shouldBeInlined:     Boolean = true
-  )(
-    implicit p: Parameters
   ): BundleBridgeNexusNode[T] = {
     val nexus = LazyModule(new BundleBridgeNexus[T](inputFn, outputFn, default, inputRequiresOutput, shouldBeInlined))
     nexus.node
@@ -209,8 +205,6 @@ object BundleBroadcast {
     default:             Option[() => T] = None,
     inputRequiresOutput: Boolean = false, // when false, connecting a source does not mandate connecting a sink
     shouldBeInlined:     Boolean = true
-  )(
-    implicit p: Parameters
   ): BundleBridgeNexusNode[T] = {
     val broadcast = LazyModule(
       new BundleBridgeNexus[T](
