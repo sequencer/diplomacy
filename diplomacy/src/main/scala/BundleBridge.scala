@@ -98,9 +98,9 @@ object BundleBridgeSource {
 }
 
 case class BundleBridgeIdentityNode[T <: Data]()(implicit valName: sourcecode.Name)
-    extends IdentityNode(new BundleBridgeImp[T])()
+    extends IdentityNode(new BundleBridgeImp[T])
 case class BundleBridgeEphemeralNode[T <: Data]()(implicit valName: sourcecode.Name)
-    extends EphemeralNode(new BundleBridgeImp[T])()
+    extends EphemeralNode(new BundleBridgeImp[T])
 
 object BundleBridgeNameNode {
   def apply[T <: Data](name: String) = BundleBridgeIdentityNode[T]()(ValName(name))
