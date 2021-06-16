@@ -11,7 +11,7 @@ object ivys {
 
 object diplomacy extends diplomacy
 
-class diplomacy extends ScalaModule with SbtModule with ScalafmtModule with PublishModule { m =>
+class diplomacy extends ScalaModule with ScalafmtModule with PublishModule { m =>
   def scalaVersion = "2.12.13"
 
   def chisel3Module: Option[PublishModule] = None
