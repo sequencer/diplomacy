@@ -1152,7 +1152,7 @@ sealed abstract class MixedNode[DI, UI, EI, BI <: Data, DO, UO, EO, BO <: Data](
   /** Ensure that the same node is not visited twice in resolving `:*=`, etc operators. */
   private var starCycleGuard = false
 
-  /** Resolve all the star operators into concrete indicies.
+  /** Resolve all the star operators into concrete indices.
     * As connections are being made, some may be "star" connections which need to be resolved.
     * In some way to determine how many actual edges they correspond to.
     * We also need to build up the ranges of edges which correspond to each binding operator, so that
